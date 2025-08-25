@@ -1,0 +1,112 @@
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.SemanticKernel;
+using Microsoft.SemanticKernel.ChatCompletion;
+using Microsoft.SemanticKernel.Connectors.OpenAI;
+using Microsoft.Extensions.Configuration;
+using MyPlugins;
+
+namespace SK_Demos
+{
+    class Program
+    {
+        static async Task Main(string[] args)
+        {
+            IConfiguration config = new ConfigurationBuilder()
+                .SetBasePath(Directory.GetCurrentDirectory())
+                .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
+                .Build();
+
+            // Retrieve settings from configuration
+
+            string? modelid = config["MODEL_ID"];
+            string? endpoint = config["ENDPOINT"];
+            string? apikey = config["API_KEY"];
+
+  
+            var builder = Kernel.CreateBuilder();
+            builder.Services.AddHttpClient();
+            builder.Services.AddSingleton<IConfiguration>(config);
+            builder.Services.AddAzureOpenAIChatCompletion(modelid!, endpoint!, apikey!);
+            
+            //var kernel = builder.Build();
+            var kernelBuilder = builder.Services.AddKernel();
+
+            kernelBuilder.Plugins.AddFromType<GetDateTime>();
+            kernelBuilder.Plugins.AddFromType<GetGeoCoordinates>();
+            kernelBuilder.Plugins.AddFromType<GetWeather>();
+            kernelBuilder.Plugins.AddFromType<PersonalInfo>();
+
+            //Add Plugin based on OpenAPI
+            var kernel = kernelBuilder.Services.BuildServiceProvider().GetRequiredService<Kernel>();
+            var kernelPlugin = await kernel.ImportPluginFromOpenApiAsync(
+                pluginName: "TahubuEmployees",
+                uri: new Uri("http://localhost:5107/swagger/v1/swagger.json")
+            );
+            builder.Services.AddSingleton(kernelPlugin);
+
+
+
+            //Step 3: chat History
+            var history = new ChatHistory(systemMessage: "You are a helpful assistant that helps people find information.");
+
+            var ChatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
+
+            FunctionChoiceBehaviorOptions options = new() { AllowConcurrentInvocation = true };
+            OpenAIPromptExecutionSettings settings = new()
+            {
+                MaxTokens = 1000,
+                Temperature = 0.7,
+                FunctionChoiceBehavior = FunctionChoiceBehavior.Auto(options: options),
+            };
+
+            //var reducer = new ChatHistoryTruncationReducer(targetCount: 2);
+            var reducer = new ChatHistorySummarizationReducer(ChatCompletionService, 2, 2);
+
+            foreach (var attrib in ChatCompletionService.Attributes)
+            {
+                Console.WriteLine($"{attrib.Key} \t\t {attrib.Value}");
+            }
+
+            while (true)
+            {
+
+                Console.Write("User: ");
+                var prompt = Console.ReadLine();
+                if (string.IsNullOrWhiteSpace(prompt)) break;
+
+                history.AddUserMessage(prompt);
+
+                //var response = await ChatCompletionService.GetChatMessageContentAsync(history, settings);
+                string fullMessage = "";
+                OpenAI.Chat.ChatTokenUsage? usage = null;
+                await foreach (StreamingChatMessageContent responseChunk in ChatCompletionService.GetStreamingChatMessageContentsAsync(history, settings, kernel))
+                {
+                    Console.Write(responseChunk.Content);
+                    fullMessage += responseChunk.Content;
+                    var streamingUpdate = responseChunk.InnerContent as OpenAI.Chat.StreamingChatCompletionUpdate;
+                    if (streamingUpdate?.Usage != null)
+                    {
+                        usage = streamingUpdate.Usage;
+                    }
+                }
+
+                //Step3: Chat History
+                //history.Add(response);  //System is pretty intelligent to uderstand that the add is is for AddAsssistantMessage
+                history.AddAssistantMessage(fullMessage);
+               
+                if (usage != null)
+                {
+                    Console.WriteLine($"\nInput Tokens: {usage.InputTokenCount}");
+                    Console.WriteLine($"Output Tokens: {usage.OutputTokenCount}");
+                    Console.WriteLine($"Total tokens:  {usage.TotalTokenCount}");
+                }
+
+                var reduceMessages = await reducer.ReduceAsync(history);
+                if (reduceMessages is not null)
+                {
+                    history = new(reduceMessages);
+                }
+            }
+        }
+    }
+}

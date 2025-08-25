@@ -1,0 +1,4 @@
+@TahubuAPI_Sample_HostAddress = http://localhost:5107
+
+GET {{TahubuAPI_Sample_HostAddress}}/api/employee/
+Accept: application/json
