@@ -60,7 +60,7 @@ namespace SK_Demos
 
             var ChatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
             
-            var history = new ChatHistory(systemMessage: "You are a helpful assistant that helps people find information about Driving in Florida, only reply with response based on information available in the context being passed to you.");
+            var history = new ChatHistory(systemMessage: "You are a helpful assistant that helps people find information about Driving in Florida, only reply with responses based on information available in the context being passed to you.");
 
             while (true)
             {

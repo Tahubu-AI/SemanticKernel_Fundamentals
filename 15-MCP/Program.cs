@@ -3,7 +3,8 @@ using Microsoft.SemanticKernel;
 using Microsoft.SemanticKernel.ChatCompletion;
 using Microsoft.SemanticKernel.Connectors.OpenAI;
 using Microsoft.Extensions.Configuration;
-using MyPlugins;
+using System.Security;
+using ModelContextProtocol.Client;
 
 namespace SK_Demos
 {
@@ -18,36 +19,29 @@ namespace SK_Demos
 
             // Retrieve settings from configuration
 
-            string? modelid = config["MODEL_ID"];
-            string? endpoint = config["ENDPOINT"];
-            string? apikey = config["API_KEY"];
+            string? modelid = config["OpenAI:ModelId"];
+            string? apikey = config["OpenAI:ApiKey"];
+            string? GitHub_PAT = config["GitHub_Pat"];
 
   
             var builder = Kernel.CreateBuilder();
             builder.Services.AddHttpClient();
             builder.Services.AddSingleton<IConfiguration>(config);
-            builder.Services.AddAzureOpenAIChatCompletion(modelid!, endpoint!, apikey!);
+            builder.Services.AddOpenAIChatCompletion(modelid!, apikey!);
             
             //var kernel = builder.Build();
             var kernelBuilder = builder.Services.AddKernel();
 
-            kernelBuilder.Plugins.AddFromType<GetDateTime>();
-            kernelBuilder.Plugins.AddFromType<GetGeoCoordinates>();
-            kernelBuilder.Plugins.AddFromType<GetWeather>();
-            kernelBuilder.Plugins.AddFromType<PersonalInfo>();
+            //Add MCP Servers
 
-            //Add Plugin based on OpenAPI
-            var kernel = kernelBuilder.Services.BuildServiceProvider().GetRequiredService<Kernel>();
-            var kernelPlugin = await kernel.ImportPluginFromOpenApiAsync(
-                pluginName: "TahubuEmployees",
-                uri: new Uri("http://localhost:5033/swagger/v1/swagger.json")
-            );
-            builder.Services.AddSingleton(kernelPlugin);
-
+            await AddFileSystemMcpServer(kernelBuilder);
+            await AddGithubMcpServer(kernelBuilder, GitHub_PAT!);
 
 
             //Step 3: chat History
             var history = new ChatHistory(systemMessage: "You are a helpful assistant that helps people find information.");
+
+            var kernel = kernelBuilder.Services.BuildServiceProvider().GetRequiredService<Kernel>();
 
             var ChatCompletionService = kernel.GetRequiredService<IChatCompletionService>();
 
@@ -107,6 +101,37 @@ namespace SK_Demos
                     history = new(reduceMessages);
                 }
             }
+        }
+
+        private static async Task AddFileSystemMcpServer(IKernelBuilder kernelBuilder)
+        {
+            var mcpClient = await McpClientFactory.CreateAsync(new StdioClientTransport(new()
+            {
+                Name = "Github",
+                Command = "npx",
+                Arguments = ["-y", "@modelcontextprotocol/server-filesystem","D:\\SemanticKernel_Fundamentals\\15-MCP\\MCPData"]
+            }));
+
+            var tools = await mcpClient.ListToolsAsync();
+
+            kernelBuilder.Plugins.AddFromFunctions("FS", tools.Select(skf =>skf.AsKernelFunction()));   
+        }
+
+        private static async Task AddGithubMcpServer(IKernelBuilder kernelBuilder, string GitHub_PAT)
+        {
+            var mcpClient = await McpClientFactory.CreateAsync(new SseClientTransport(new()
+            {
+                Name = "Github",
+                Endpoint = new Uri("https://api.githubcopilot.com/mcp/"),
+                AdditionalHeaders = new Dictionary<string, string>
+                {
+                    ["Authorization"] = $"Bearer {GitHub_PAT}" 
+                }   
+            }));
+            
+            var tools = await mcpClient.ListToolsAsync();
+
+            kernelBuilder.Plugins.AddFromFunctions("GH", tools.Select(skf =>skf.AsKernelFunction()));
         }
     }
 }

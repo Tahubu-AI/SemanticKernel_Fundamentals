@@ -57,7 +57,7 @@ namespace Plugins
             {
 
                 // Only add results with score >= 0.8
-                if (result.Score < 0.7)
+                if (result.Score < 0.8)
                     continue;
 
 

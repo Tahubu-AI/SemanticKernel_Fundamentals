@@ -16,7 +16,7 @@ var kernel = Kernel.CreateBuilder()
 ChatCompletionAgent agent = new ChatCompletionAgent
 {
     Kernel = kernel,
-    Instructions = "You are a nice and helpful local agent"
+    Instructions = "You are a powerful and helpful local agent"
 };
 
 List<ChatMessageContent> history = [];

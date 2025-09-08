@@ -11,9 +11,9 @@
     <PackageReference Include="Microsoft.Extensions.Http" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.8" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.63.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.63.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Agents.OpenAI" Version="1.63.0-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.64.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Agents.Core" Version="1.64.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Agents.OpenAI" Version="1.64.0-preview" />
 </ItemGroup>
 
 </Project>

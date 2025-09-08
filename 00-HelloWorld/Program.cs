@@ -19,3 +19,4 @@ while (true)
     var response = await ChatCompletionService.GetChatMessageContentAsync(prompt);
     Console.WriteLine($"Bot: {response}");
 }
+

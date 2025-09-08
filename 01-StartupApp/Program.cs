@@ -15,7 +15,7 @@ OpenAIPromptExecutionSettings settings = new()
 {
     MaxTokens = 1000,
     Temperature = 0.7,
-    ChatSystemPrompt = "You are a helpful pirate that helps people find information.",  
+    ChatSystemPrompt = "You are a helpful assistant that helps people find information.",  
 };
 
 //Step 3: chat History

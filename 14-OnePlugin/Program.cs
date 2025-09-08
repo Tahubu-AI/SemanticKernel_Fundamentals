@@ -24,25 +24,15 @@ namespace SK_Demos
 
   
             var builder = Kernel.CreateBuilder();
-            builder.Services.AddHttpClient();
             builder.Services.AddSingleton<IConfiguration>(config);
             builder.Services.AddAzureOpenAIChatCompletion(modelid!, endpoint!, apikey!);
             
-            //var kernel = builder.Build();
             var kernelBuilder = builder.Services.AddKernel();
 
             kernelBuilder.Plugins.AddFromType<GetDateTime>();
-            kernelBuilder.Plugins.AddFromType<GetGeoCoordinates>();
-            kernelBuilder.Plugins.AddFromType<GetWeather>();
-            kernelBuilder.Plugins.AddFromType<PersonalInfo>();
 
-            //Add Plugin based on OpenAPI
+           
             var kernel = kernelBuilder.Services.BuildServiceProvider().GetRequiredService<Kernel>();
-            var kernelPlugin = await kernel.ImportPluginFromOpenApiAsync(
-                pluginName: "TahubuEmployees",
-                uri: new Uri("http://localhost:5033/swagger/v1/swagger.json")
-            );
-            builder.Services.AddSingleton(kernelPlugin);
 
 
 

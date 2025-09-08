@@ -10,8 +10,8 @@
     <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="9.0.8" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="9.0.8" />
-    <PackageReference Include="Microsoft.SemanticKernel" Version="1.63.0" />
-    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.63.0-preview" />
+    <PackageReference Include="Microsoft.SemanticKernel" Version="1.64.0" />
+    <PackageReference Include="Microsoft.SemanticKernel.Connectors.AzureAISearch" Version="1.64.0-preview" />
     <PackageReference Include="Azure.Search.Documents" Version="11.7.0-beta.6" />
   </ItemGroup>
 </Project>

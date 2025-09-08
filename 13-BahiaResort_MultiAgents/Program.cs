@@ -29,15 +29,21 @@ namespace SK_Demos
                 .Build();
 
             string BahiaConcierge = """
-            You are an informative hotel concierge. Your role is to gather and understand user requirements and reply to guests with professionalism regarding the hotel and room.
+            You are an informative hotel concierge. Your role is to gather and 
+            understand user requirements and reply to guests with professionalism 
+            regarding the hotel and room Remember that the WIFI password is "Bahia@1!".
             """;
 
             string DockSide1953 = """
-            You are the manager of the DockerSide 1953 restaurant at the Bahia Resort in San Diego. Your task is to answer questions about the restaurant and recommend it to hotel guests.
+            You are the manager of the DockerSide 1953 restaurant at the Bahia Resort 
+            in San Diego. Your task is to answer questions about the restaurant and 
+            recommend it to hotel guests.
             """;
 
             string BahiaCruises = """
-            You are the Bahia resort Cruise cordinator at the Bahia Resort in San Diego. Your responsibility is to answer questions about the cruises offered by the resort and to recommend them to hotel guests.
+            You are the Bahia resort Cruise cordinator at the Bahia Resort in San Diego. 
+            Your responsibility is to answer questions about the cruises offered by the 
+            resort and to recommend them to hotel guests.
             """;
 
             ChatCompletionAgent BahiaConciergeAgent = new()
